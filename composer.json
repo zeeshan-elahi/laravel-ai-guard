@@ -1,0 +1,47 @@
+{
+	"name": "zeeshan-elahi/laravel-ai-guard",
+	"description": "Prompt-injection and tool-safety guard for the Laravel AI SDK: tool policies, untrusted-content handling, output checks, an audit log and a red-team test pack.",
+	"keywords": ["laravel", "laravel-ai", "ai", "llm", "agents", "prompt-injection", "security", "guardrails"],
+	"license": "MIT",
+	"type": "library",
+	"authors": [
+		{
+			"name": "Zeeshan Elahi",
+			"homepage": "https://zeeshanelahi.com"
+		}
+	],
+	"require": {
+		"php": "^8.3",
+		"illuminate/contracts": "^12.0|^13.0",
+		"illuminate/database": "^12.0|^13.0",
+		"illuminate/support": "^12.0|^13.0",
+		"laravel/ai": "^1.4"
+	},
+	"require-dev": {
+		"orchestra/testbench": "^10.0|^11.0",
+		"phpunit/phpunit": "^11.5|^12.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"ZeeshanElahi\\AiGuard\\": "src/",
+			"ZeeshanElahi\\AiGuard\\Database\\": "database/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"ZeeshanElahi\\AiGuard\\Tests\\": "tests/"
+		}
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"ZeeshanElahi\\AiGuard\\AiGuardServiceProvider"
+			]
+		}
+	},
+	"config": {
+		"sort-packages": true
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true
+}
