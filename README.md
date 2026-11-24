@@ -20,7 +20,7 @@ We ran 19 indirect prompt-injection attacks and 5 normal requests against a stor
 | **All attacks** | **18/57 (32%)** | **5/57 (9%)** | **0/57 (0%)** |
 | Normal requests that still worked | 15/15 | 15/15 | 15/15 |
 
-The model read the planted text in 54 of 57 runs in every mode, so a blocked attack is a real block, not a model that never saw the attack.
+The model read the planted text in 54 of 57 runs in every mode, so a blocked attack is a real block, not a model that never saw the attack. The full run-by-run reports are in [docs/results](docs/results).
 
 Version 1 left two gaps, both found by this red-team: tracking-image links to an outside domain, and a one-word internal code copied from the instructions. Version 2 adds a link allowlist and protected terms, and closes both.
 
