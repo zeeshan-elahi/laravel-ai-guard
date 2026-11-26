@@ -12,6 +12,9 @@ class ApprovableRefund implements Approvable, Tool
 {
 	use InteractsWithApprovals;
 
+	/** @var array<int, string> */
+	public static array $refunded = [];
+
 	public function description(): string
 	{
 		return 'Refund an order. Needs a human to approve.';
@@ -19,6 +22,8 @@ class ApprovableRefund implements Approvable, Tool
 
 	public function handle(Request $request): string
 	{
+		self::$refunded[] = (string) $request['order_number'];
+
 		return 'Refunded.';
 	}
 

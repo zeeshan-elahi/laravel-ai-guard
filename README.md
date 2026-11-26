@@ -173,6 +173,16 @@ The main options in `config/ai-guard.php`:
 | `output.protected_terms`, `output.protect_instruction_codes` | `[]`, `true` | Phrases to redact |
 | `output.links.enabled`, `output.links.allowed_domains` | `true`, `[]` | Link allowlist (the `app.url` host is always allowed) |
 | `blocked_message`, `withheld_message`, `output.leak_message` | | What the model or the user sees instead |
+| `approvals.untrimmed_results` | `block` | Whether a resumed call to a tool with `onlyReturnFields()` runs (`allow`) or is blocked |
+
+## Human approval
+
+Tools that use the SDK's `requireApproval()` are guarded at both ends of the pause:
+
+- **Before the pause.** The policy runs first. A call it blocks is never sent to a reviewer; the model gets the blocked message, as for any other tool.
+- **On resume.** The SDK runs approved calls before the first step, outside the middleware. The guard checks each one again against the user's message in the resumed history, on the arguments actually being run, so arguments a reviewer changed with `Decision::edit()` are checked like any others. A blocked call does not run: the model reads "The tool call failed: Blocked by policy: ...", and the audit log gets a `tool.blocked` row with `after_approval: true`.
+- A tool with `onlyReturnFields()` can't have its result trimmed on resume, so it is blocked there by default. Set `approvals.untrimmed_results` to `allow` to run it; the audit row then carries a warning.
+- The SDK only pauses a run it can resume: use a conversational agent, or pass history with `withMessages()` (an empty array is enough for the first turn).
 
 ## Limits
 
@@ -183,8 +193,9 @@ Read these before you rely on the package.
 - Instruction leaks are caught as runs of copied words. A paraphrase is not caught.
 - With `stream()`, text already sent to the client can't be recalled. The stored answer and the tool-call arguments are still checked.
 - Structured output (`$response->structured`) is not scanned.
-- Tool calls resumed after a human approval run outside the middleware. They are logged by the approval listener.
-- Sub-agent tools (`AgentTool`) and provider-hosted tools are not wrapped.
+- Tool calls resumed after a human approval are checked against their policy, but their results are not wrapped in the untrusted-content tag, and `maxCallsPerRun()` counts start again on resume.
+- The resume check relies on the SDK dispatching `InvokingTool` before a resumed call and turning a listener exception into a failed tool result. The test suite pins this; recheck after upgrading `laravel/ai`.
+- Sub-agent tools (`AgentTool`) and provider-hosted tools are not wrapped, on resume or otherwise.
 - Identifier checks need your own pattern and allowed list.
 
 ## Testing

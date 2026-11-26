@@ -63,12 +63,23 @@ class GuardTools
 			return $tool;
 		}
 
-		$name = ToolNameResolver::resolve($tool);
-		$policy = collect($this->policies)->first(fn (ToolPolicy $policy) => $policy->matches($name, $tool::class));
+		$policy = $this->policyFor($tool);
 		$audit = app(AuditLogger::class);
 
 		return $tool instanceof Approvable
 			? new GuardedApprovableTool($tool, $policy, $context, $audit)
 			: new GuardedTool($tool, $policy, $context, $audit);
+	}
+
+	/**
+	 * The first policy declared for this tool, matched by tool name or class. Also used to check
+	 * calls that resume after a human approval, so policies stay declared in one place.
+	 */
+	public function policyFor(Tool $tool): ?ToolPolicy
+	{
+		$name = ToolNameResolver::resolve($tool);
+		$class = $tool::class;
+
+		return collect($this->policies)->first(fn (ToolPolicy $policy) => $policy->matches($name, $class));
 	}
 }

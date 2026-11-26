@@ -10,7 +10,8 @@ use Laravel\Ai\PendingStep;
  * State for one agent invocation: the user's own message and how often each tool has run.
  *
  * Bound as a scoped singleton, so it resets between requests and queued jobs. The middleware
- * also resets it whenever a new invocation starts.
+ * also resets it whenever a new invocation starts. A run that resumes after a human approval
+ * is started before its first step, from the prompt event, and marked as resuming.
  */
 class GuardContext
 {
@@ -24,6 +25,8 @@ class GuardContext
 
 	protected ?string $syncKey = null;
 
+	protected bool $resuming = false;
+
 	/** @var array<string, int> */
 	protected array $toolCalls = [];
 
@@ -34,6 +37,29 @@ class GuardContext
 		$this->agent = $agent;
 		$this->toolCalls = [];
 		$this->boundary = bin2hex(random_bytes(6));
+		$this->resuming = false;
+	}
+
+	/**
+	 * Start a run that resumes after a human approval. The approved calls run before any step,
+	 * so the middleware has not seen this run yet.
+	 */
+	public function beginResume(string $invocationId, ?string $userMessage, ?string $agent = null): void
+	{
+		$this->begin($invocationId, $userMessage, $agent);
+		$this->resuming = true;
+
+		// Steps after the resume carry the same invocation id, so the middleware treats them as
+		// this run and keeps its boundary tag and call counts instead of starting over.
+		$this->syncKey = $invocationId;
+	}
+
+	/**
+	 * Whether the given invocation is a run that resumed after a human approval.
+	 */
+	public function resuming(?string $invocationId): bool
+	{
+		return $this->resuming && $invocationId !== null && $invocationId === $this->invocationId;
 	}
 
 	/**

@@ -7,7 +7,8 @@ use Laravel\Ai\Contracts\Approvable;
 use Laravel\Ai\Tools\Request;
 
 /**
- * A guarded tool whose inner tool asks for human approval. Approval settings pass straight through.
+ * A guarded tool whose inner tool asks for human approval. Approval settings pass straight through,
+ * except that a call the policy blocks is never sent to a reviewer.
  */
 class GuardedApprovableTool extends GuardedTool implements Approvable
 {
@@ -27,6 +28,16 @@ class GuardedApprovableTool extends GuardedTool implements Approvable
 
 	public function shouldRequestApproval(Request $request): ?Approval
 	{
+		// A blocked call needs no reviewer: with no approval requested, the SDK calls handle(),
+		// which returns the blocked message and writes the single tool.blocked audit row.
+		if (config('ai-guard.enabled', true) && $this->policy !== null) {
+			$decision = $this->policy->evaluate($request, $this->context, $this->name());
+
+			if (! $decision->allowed) {
+				return null;
+			}
+		}
+
 		return $this->approvable()->shouldRequestApproval($request);
 	}
 

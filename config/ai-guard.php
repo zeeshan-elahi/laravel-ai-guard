@@ -120,4 +120,20 @@ return [
 
 	'blocked_message' => 'Blocked by policy: :reason Do not retry this call. Tell the user what they need to ask for or provide.',
 
+	/*
+	|--------------------------------------------------------------------------
+	| Human approvals
+	|--------------------------------------------------------------------------
+	|
+	| A call that resumes after a human approval is checked against its policy
+	| again, on the arguments actually being run. Its result can't be trimmed
+	| to a policy's onlyReturnFields() list on that path, so such a call is
+	| blocked by default. Set to "allow" to run it and log a warning instead.
+	|
+	*/
+
+	'approvals' => [
+		'untrimmed_results' => env('AI_GUARD_APPROVALS_UNTRIMMED_RESULTS', 'block'),
+	],
+
 ];

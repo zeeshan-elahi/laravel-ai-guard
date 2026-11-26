@@ -7,8 +7,8 @@ use Laravel\Ai\Events\ToolApprovalResolved;
 use ZeeshanElahi\AiGuard\Audit\AuditLogger;
 
 /**
- * Records human-in-the-loop approvals. Calls resumed after approval run outside the guard
- * middleware, so the log keeps a trace of who allowed what.
+ * Records human-in-the-loop approvals: when a run pauses for a reviewer and when the decisions
+ * come back. Each resumed call is checked against its policy and logged as its own tool event.
  */
 class RecordApprovalEvents
 {
